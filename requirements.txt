@@ -1,0 +1,4 @@
+Flask==3.0.3
+python-dotenv==1.0.1
+SQLAlchemy==2.0.35
+pytest==8.3.3
