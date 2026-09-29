@@ -1,57 +1,59 @@
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-
-# In-memory volunteer data storage (for demo purpose, no database)
 volunteers = []
+next_id = 1
 
-# Get all volunteer records
 @app.route('/volunteers', methods=['GET'])
-def get_all_volunteers():
+def get_all():
     return jsonify(volunteers)
 
-# Create a new volunteer record
-@app.route('/volunteers', methods=['POST'])
-def add_volunteer():
-    data = request.get_json()
-    new_volunteer = {
-        "id": len(volunteers) + 1,
-        "name": data.get("name"),
-        "role": data.get("role"),
-        "contact": data.get("contact")
-    }
-    volunteers.append(new_volunteer)
-    return jsonify(new_volunteer), 201
-
-# Get single volunteer by ID
 @app.route('/volunteers/<int:vid>', methods=['GET'])
-def get_volunteer(vid):
-    for volunteer in volunteers:
-        if volunteer["id"] == vid:
-            return jsonify(volunteer)
-    return jsonify({"message": "Volunteer not found"}), 404
+def get_one(vid):
+    item = next((v for v in volunteers if v["id"] == vid), None)
+    if not item:
+        return jsonify({"msg":"not found"}),404
+    return jsonify(item)
 
-# Update volunteer information by ID
-@app.route('/volunteers/<int:vid>', methods=['PUT'])
-def update_volunteer(vid):
+@app.route('/volunteers', methods=['POST'])
+def create():
+    global next_id
     data = request.get_json()
-    for volunteer in volunteers:
-        if volunteer["id"] == vid:
-            volunteer["name"] = data.get("name", volunteer["name"])
-            volunteer["role"] = data.get("role", volunteer["role"])
-            volunteer["contact"] = data.get("contact", volunteer["contact"])
-            return jsonify(volunteer)
-    return jsonify({"message": "Volunteer not found"}), 404
+    new_item = {
+        "id": next_id,
+        "name": data["name"],
+        "role": data["role"],
+        "contact": data["contact"]
+    }
+    volunteers.append(new_item)
+    next_id += 1
+    return jsonify(new_item), 201
 
-# Delete volunteer record by ID
+@app.route('/volunteers/<int:vid>', methods=['PUT'])
+def update(vid):
+    item = next((v for v in volunteers if v["id"] == vid), None)
+    if not item:
+        return jsonify({"msg":"not found"}),404
+    data = request.get_json()
+    item["name"] = data["name"]
+    item["role"] = data["role"]
+    item["contact"] = data["contact"]
+    return jsonify(item)
+
 @app.route('/volunteers/<int:vid>', methods=['DELETE'])
-def delete_volunteer(vid):
+def delete(vid):
     global volunteers
-    for volunteer in volunteers:
-        if volunteer["id"] == vid:
-            volunteers = [item for item in volunteers if item["id"] != vid]
-            return jsonify({"message": "Deleted successfully"})
-    return jsonify({"message": "Volunteer not found"}), 404
+    item = next((v for v in volunteers if v["id"] == vid), None)
+    if not item:
+        return jsonify({"msg":"not found"}),404
+    volunteers = [v for v in volunteers if v["id"] != vid]
+    return jsonify({"msg":"deleted"})
 
-if __name__ == "__main__":
+# 新增：供pytest重置数据
+def reset_data():
+    global volunteers, next_id
+    volunteers = []
+    next_id = 1
+
+if __name__ == '__main__':
     app.run(debug=True)
