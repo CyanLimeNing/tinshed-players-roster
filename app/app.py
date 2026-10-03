@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# ========== In‑memory data store ==========
 volunteers = []
 productions = []
 performances = []
@@ -13,7 +12,6 @@ next_production_id = 1
 next_performance_id = 1
 next_assignment_id = 1
 
-# reset for pytest
 def reset_data():
     global volunteers, productions, performances, assignments
     global next_volunteer_id, next_production_id, next_performance_id, next_assignment_id
@@ -26,7 +24,6 @@ def reset_data():
     next_performance_id = 1
     next_assignment_id = 1
 
-# ========== Volunteer CRUD ==========
 @app.route("/volunteers", methods=["GET"])
 def get_all_volunteers():
     return jsonify(volunteers)
@@ -72,7 +69,6 @@ def delete_volunteer(vid):
     volunteers = [x for x in volunteers if x["id"] != vid]
     return jsonify({"message":"Volunteer deleted"})
 
-# ========== Production（剧目）CRUD ==========
 @app.route("/productions", methods=["GET"])
 def get_all_productions():
     return jsonify(productions)
@@ -114,7 +110,6 @@ def delete_production(pid):
     productions = [x for x in productions if x["id"] != pid]
     return jsonify({"message":"Production deleted"})
 
-# ========== Performance（单场演出）CRUD ==========
 @app.route("/performances", methods=["GET"])
 def get_all_performances():
     return jsonify(performances)
@@ -140,7 +135,6 @@ def get_performance(pfid):
         return jsonify({"message":"Performance not found"}),404
     return jsonify(pf)
 
-# ========== Assignment 岗位分配【核心业务校验在这里】 ==========
 @app.route("/assignments", methods=["GET"])
 def get_all_assignments():
     return jsonify(assignments)
@@ -153,7 +147,6 @@ def create_assignment():
     performance_id = data.get("performance_id")
     role = data.get("role")
 
-    # 业务规则：同一个志愿者，同一场演出，不能重复分配岗位
     conflict = any(
         a["volunteer_id"] == volunteer_id and a["performance_id"] == performance_id
         for a in assignments
