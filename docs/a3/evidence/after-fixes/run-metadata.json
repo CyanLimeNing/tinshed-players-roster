@@ -1,0 +1,43 @@
+{
+  "label": "after-fixes",
+  "startedAtUtc": "2026-10-05T14:56:04.548Z",
+  "finishedAtUtc": "2026-10-05T14:56:06.033Z",
+  "node": "v24.19.0",
+  "platform": "win32",
+  "architecture": "x64",
+  "command": "node --test --test-reporter=tap test/assignments.test.js test/productions.test.js test/roster.test.js test/unavailability.test.js test/validation.test.js test/volunteers.test.js",
+  "upstreamBaseline": "f2999cfdd1d213ce8548ac142c35944decf85d9b",
+  "exitCode": 0,
+  "totals": {
+    "tests": 51,
+    "pass": 51,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "fileHashes": {
+    "src/app.js": "8fffa24546028f18bf381c5b3b67f8e3cb63bccf8a21a7062ffd953e93852765",
+    "src/config.js": "3970f142d27c00e5708400e7ed3d4eb8b3bcb292ba084458f383eb6079b35774",
+    "src/db.js": "5ed38d01439922f9a8ac4f5b7bb19154df5fece4e7818a285925d766580ad62d",
+    "src/server.js": "8e15553bdb5ff365dd23aa6081cc7dc081679cc6998a4c69f38c90773a5159a6",
+    "src/validation.js": "4c9000f791fce1b114a393f40834cc744de5e1384d629b73463b1d426fc632ff",
+    "src/routes/assignments.js": "41e4c123fb9e268b6c7cf6a3c37804ac17e5183f6800ca02f79f2ea73fb5027a",
+    "src/routes/productions.js": "069ec8d9c972783fac1390401cb2aeae4eb60a90266d8e1c40e8253c15e0ab4b",
+    "src/routes/roster.js": "4ae0cd5ab3c4a382e627fb0abd81fcbcd95b409d8e46e3fe377534a0d24937c1",
+    "src/routes/volunteers.js": "da3b239eb1dd920b1ca03b375763e115a59a13cc628fa9cd6934aa0437fd1747",
+    "public/app.js": "918912e93ea9b2497530e70807cd76b4e04db6e645c5551b26d155aa124cc2e8",
+    "public/index.html": "a5910498970aad8c836619bb493be9fd046caa2767f35be0382e706799340cac",
+    "public/styles.css": "17cd748e54c0d0048c9da89465120982e283fb23262f8aa001fa00ff23a910ef",
+    "test/assignments.test.js": "2b20390dfa3c95f19b7f8f8298f9ff39b2bb6b681dae21d9fe0e2df7d7d58cab",
+    "test/helpers.js": "e25507172ae3223559370dd1e0917bb9891124b1f7dbcf7a3f4858ccf6a105c0",
+    "test/productions.test.js": "3dbdb9e62f0e68eaf0fdcdc5d879df205d3de79d86d5bbd4d1a8d487b5cad0ed",
+    "test/roster.test.js": "55a2fa687b90e71439962b61b7a0775a7d71a7f3b05bed1372aa16f39c745bee",
+    "test/unavailability.test.js": "7e5b9a9d38291ccd271b118b360ed7827e0e43450db3e2914150e3c7ab43577b",
+    "test/validation.test.js": "052fda2ad9fd5f8dbae88922aa68f1c4e52dbd77183651664a0fce93bed16604",
+    "test/volunteers.test.js": "38f94a73a41395a26acb89623f3cbb22ad7249f24c69948c38162670f660b032",
+    "scripts/run-evidence.js": "9900903320a73224490e0fd5b38cfd7b056a09636e96954dc946801a077e04e4",
+    "package.json": "a28c38e50c6688897559c52dcf281abbb8d864594b73431ac09dd583507c7f72",
+    "package-lock.json": "2b6b9bb0147eef2013ab0424db4e0f2fa478a012166ce409e7c0f89baaca6a61"
+  }
+}

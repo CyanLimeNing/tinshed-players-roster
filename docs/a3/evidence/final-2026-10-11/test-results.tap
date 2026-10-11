@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: a volunteer is assigned to a role for a performance
+ok 1 - a volunteer is assigned to a role for a performance
+  ---
+  duration_ms: 155.2282
+  type: 'test'
+  ...
+# Subtest: an assignment appears on the performance roster
+ok 2 - an assignment appears on the performance roster
+  ---
+  duration_ms: 78.6986
+  type: 'test'
+  ...
+# Subtest: a role outside the crew call is refused
+ok 3 - a role outside the crew call is refused
+  ---
+  duration_ms: 65.3511
+  type: 'test'
+  ...
+# Subtest: THE ONE-ROLE RULE: a second role in the same performance is refused with a reason
+ok 4 - THE ONE-ROLE RULE: a second role in the same performance is refused with a reason
+  ---
+  duration_ms: 79.9315
+  type: 'test'
+  ...
+# Subtest: THE ONE-ROLE RULE: moving an assignment onto a performance the volunteer already works is refused
+ok 5 - THE ONE-ROLE RULE: moving an assignment onto a performance the volunteer already works is refused
+  ---
+  duration_ms: 83.286
+  type: 'test'
+  ...
+# Subtest: replacing the volunteer on an assignment keeps the position filled by the new person
+ok 6 - replacing the volunteer on an assignment keeps the position filled by the new person
+  ---
+  duration_ms: 75.6571
+  type: 'test'
+  ...
+# Subtest: removing an assignment opens the position rather than deleting it
+ok 7 - removing an assignment opens the position rather than deleting it
+  ---
+  duration_ms: 73.5101
+  type: 'test'
+  ...
+# Subtest: changing one assignment does not affect any other assignment
+ok 8 - changing one assignment does not affect any other assignment
+  ---
+  duration_ms: 92.1973
+  type: 'test'
+  ...
+# Subtest: an assignment can be confirmed
+ok 9 - an assignment can be confirmed
+  ---
+  duration_ms: 46.8587
+  type: 'test'
+  ...
+# Subtest: PERSIST01 saved volunteers, performances and assignments survive reopening the database
+ok 10 - PERSIST01 saved volunteers, performances and assignments survive reopening the database
+  ---
+  duration_ms: 422.7985
+  type: 'test'
+  ...
+# Subtest: a production is created with a title
+ok 11 - a production is created with a title
+  ---
+  duration_ms: 130.9915
+  type: 'test'
+  ...
+# Subtest: a production without a title is refused
+ok 12 - a production without a title is refused
+  ---
+  duration_ms: 24.147
+  type: 'test'
+  ...
+# Subtest: performances are listed in date and time order
+ok 13 - performances are listed in date and time order
+  ---
+  duration_ms: 97.5355
+  type: 'test'
+  ...
+# Subtest: changing one performance leaves the others unaffected
+ok 14 - changing one performance leaves the others unaffected
+  ---
+  duration_ms: 53.2316
+  type: 'test'
+  ...
+# Subtest: removing a performance leaves the production and its other performances intact
+ok 15 - removing a performance leaves the production and its other performances intact
+  ---
+  duration_ms: 59.1736
+  type: 'test'
+  ...
+# Subtest: an evening call has a bar; a matinee call does not
+ok 16 - an evening call has a bar; a matinee call does not
+  ---
+  duration_ms: 48.1944
+  type: 'test'
+  ...
+# Subtest: the crew call of one performance can be revised without touching another
+ok 17 - the crew call of one performance can be revised without touching another
+  ---
+  duration_ms: 59.6047
+  type: 'test'
+  ...
+# Subtest: the roster shows filled and open positions for every role in the call
+ok 18 - the roster shows filled and open positions for every role in the call
+  ---
+  duration_ms: 183.3547
+  type: 'test'
+  ...
+# Subtest: the production roster covers every performance in date order
+ok 19 - the production roster covers every performance in date order
+  ---
+  duration_ms: 59.6903
+  type: 'test'
+  ...
+# Subtest: a volunteer sees their own assignments with production, date, time and role
+ok 20 - a volunteer sees their own assignments with production, date, time and role
+  ---
+  duration_ms: 85.1731
+  type: 'test'
+  ...
+# Subtest: a volunteer with no assignments gets an empty list rather than an error
+ok 21 - a volunteer with no assignments gets an empty list rather than an error
+  ---
+  duration_ms: 15.2866
+  type: 'test'
+  ...
+# Subtest: a volunteer can record a date range they cannot be rostered
+ok 22 - a volunteer can record a date range they cannot be rostered
+  ---
+  duration_ms: 168.538
+  type: 'test'
+  ...
+# Subtest: a range with startsOn after endsOn is refused
+ok 23 - a range with startsOn after endsOn is refused
+  ---
+  duration_ms: 34.9056
+  type: 'test'
+  ...
+# Subtest: a performance inside an unavailable range refuses the assignment with a reason
+ok 24 - a performance inside an unavailable range refuses the assignment with a reason
+  ---
+  duration_ms: 74.3177
+  type: 'test'
+  ...
+# Subtest: the first and last day of the range are also refused (inclusive boundaries)
+ok 25 - the first and last day of the range are also refused (inclusive boundaries)
+  ---
+  duration_ms: 109.1034
+  type: 'test'
+  ...
+# Subtest: a performance outside the range is accepted
+ok 26 - a performance outside the range is accepted
+  ---
+  duration_ms: 46.4173
+  type: 'test'
+  ...
+# Subtest: moving an assignment to an unavailable date is refused
+ok 27 - moving an assignment to an unavailable date is refused
+  ---
+  duration_ms: 75.1208
+  type: 'test'
+  ...
+# Subtest: removing the recorded range allows the volunteer to be rostered again
+ok 28 - removing the recorded range allows the volunteer to be rostered again
+  ---
+  duration_ms: 62.2604
+  type: 'test'
+  ...
+# Subtest: VAL01 blank contact information is rejected on create
+ok 29 - VAL01 blank contact information is rejected on create
+  ---
+  duration_ms: 144.0165
+  type: 'test'
+  ...
+# Subtest: VAL02 an update cannot erase the volunteer name
+ok 30 - VAL02 an update cannot erase the volunteer name
+  ---
+  duration_ms: 42.8146
+  type: 'test'
+  ...
+# Subtest: VAL03 an update cannot erase the last contact method
+ok 31 - VAL03 an update cannot erase the last contact method
+  ---
+  duration_ms: 52.1682
+  type: 'test'
+  ...
+# Subtest: VAL04 email only is a valid contact method
+ok 32 - VAL04 email only is a valid contact method
+  ---
+  duration_ms: 20.4891
+  type: 'test'
+  ...
+# Subtest: VAL05 impossible performance dates are rejected
+ok 33 - VAL05 impossible performance dates are rejected
+  ---
+  duration_ms: 56.7997
+  type: 'test'
+  ...
+# Subtest: VAL06 impossible performance times are rejected
+ok 34 - VAL06 impossible performance times are rejected
+  ---
+  duration_ms: 43.2955
+  type: 'test'
+  ...
+# Subtest: VAL07 invalid dates on update preserve the old performance
+ok 35 - VAL07 invalid dates on update preserve the old performance
+  ---
+  duration_ms: 46.3429
+  type: 'test'
+  ...
+# Subtest: VAL08 impossible unavailable dates are rejected
+ok 36 - VAL08 impossible unavailable dates are rejected
+  ---
+  duration_ms: 10.1579
+  type: 'test'
+  ...
+# Subtest: VAL09 real leap day is accepted and non leap day is rejected
+ok 37 - VAL09 real leap day is accepted and non leap day is rejected
+  ---
+  duration_ms: 19.0972
+  type: 'test'
+  ...
+# Subtest: VAL10 changing assignment to an inactive volunteer is rejected
+ok 38 - VAL10 changing assignment to an inactive volunteer is rejected
+  ---
+  duration_ms: 81.4276
+  type: 'test'
+  ...
+# Subtest: VAL11 changing assignment to a role outside the call is rejected
+ok 39 - VAL11 changing assignment to a role outside the call is rejected
+  ---
+  duration_ms: 58.3848
+  type: 'test'
+  ...
+# Subtest: VAL12 replacing a confirmed assignment requires a new confirmation
+ok 40 - VAL12 replacing a confirmed assignment requires a new confirmation
+  ---
+  duration_ms: 92.1436
+  type: 'test'
+  ...
+# Subtest: VAL13 a no change assignment update preserves confirmation
+ok 41 - VAL13 a no change assignment update preserves confirmation
+  ---
+  duration_ms: 60.2298
+  type: 'test'
+  ...
+# Subtest: VAL14 nested performance operations cannot affect another production
+ok 42 - VAL14 nested performance operations cannot affect another production
+  ---
+  duration_ms: 94.0158
+  type: 'test'
+  ...
+# Subtest: VAL15 duplicate crew roles are rejected without losing the old crew call
+ok 43 - VAL15 duplicate crew roles are rejected without losing the old crew call
+  ---
+  duration_ms: 45.7523
+  type: 'test'
+  ...
+# Subtest: VAL16 a crew call edit cannot silently hide existing assignments
+ok 44 - VAL16 a crew call edit cannot silently hide existing assignments
+  ---
+  duration_ms: 61.9207
+  type: 'test'
+  ...
+# Subtest: VAL17 moving a performance to an unavailable date is rejected
+ok 45 - VAL17 moving a performance to an unavailable date is rejected
+  ---
+  duration_ms: 60.7238
+  type: 'test'
+  ...
+# Subtest: VAL18 malformed JSON returns a client error
+ok 46 - VAL18 malformed JSON returns a client error
+  ---
+  duration_ms: 6.0362
+  type: 'test'
+  ...
+# Subtest: VAL19 rescheduling clears confirmation and preserves assignment identity
+ok 47 - VAL19 rescheduling clears confirmation and preserves assignment identity
+  ---
+  duration_ms: 86.8577
+  type: 'test'
+  ...
+# Subtest: VAL20 unknown crew template is rejected without creating a performance
+ok 48 - VAL20 unknown crew template is rejected without creating a performance
+  ---
+  duration_ms: 14.9232
+  type: 'test'
+  ...
+# Subtest: a volunteer can be added with name and contact details
+ok 49 - a volunteer can be added with name and contact details
+  ---
+  duration_ms: 142.0368
+  type: 'test'
+  ...
+# Subtest: a volunteer with no contact method is refused
+ok 50 - a volunteer with no contact method is refused
+  ---
+  duration_ms: 40.7193
+  type: 'test'
+  ...
+# Subtest: a volunteer can be found again and listed
+ok 51 - a volunteer can be found again and listed
+  ---
+  duration_ms: 45.4947
+  type: 'test'
+  ...
+# Subtest: contact details can be updated
+ok 52 - contact details can be updated
+  ---
+  duration_ms: 24.017
+  type: 'test'
+  ...
+# Subtest: deactivating a volunteer keeps their historical assignments
+ok 53 - deactivating a volunteer keeps their historical assignments
+  ---
+  duration_ms: 84.79
+  type: 'test'
+  ...
+# Subtest: an inactive volunteer cannot be rostered on a new assignment
+ok 54 - an inactive volunteer cannot be rostered on a new assignment
+  ---
+  duration_ms: 45.8515
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1785.1441

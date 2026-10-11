@@ -21,6 +21,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 const config = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 3000,
+  host: process.env.HOST || '127.0.0.1',
   dbPath: process.env.DB_PATH || path.join(__dirname, '..', 'data', 'tinshed.db'),
 };
 

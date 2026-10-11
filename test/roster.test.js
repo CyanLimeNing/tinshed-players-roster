@@ -14,7 +14,7 @@ const { startTestServer, seedProduction, seedVolunteer } = require('./helpers');
 test('the roster shows filled and open positions for every role in the call', async (t) => {
   const s = await startTestServer(t);
   const col = await seedVolunteer(s, { name: 'Col Hendricks' });
-  const { performanceId } = await seedProduction(s); // evening call: 8 roles
+  const { performanceId } = await seedProduction(s); // evening call: 7 role types, 9 positions
 
   await s.post(`/api/performances/${performanceId}/assignments`, { volunteerId: col.id, role: 'Stage Manager' });
 

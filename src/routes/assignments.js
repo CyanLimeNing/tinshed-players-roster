@@ -100,6 +100,11 @@ function assignmentsRouter(db) {
     if (!perf) return res.status(404).json({ error: 'Performance not found.' });
     const volunteer = db.prepare('SELECT * FROM volunteers WHERE id = ?').get(vid);
     if (!volunteer) return res.status(404).json({ error: 'Volunteer not found.' });
+    if (!volunteer.active) {
+      return res.status(400).json({ error: `${volunteer.name} is inactive and cannot be rostered.` });
+    }
+    const call = db.prepare('SELECT role FROM crew_roles WHERE performance_id = ? AND role = ?').get(newPerf, newRole);
+    if (!call) return res.status(400).json({ error: `"${newRole}" is not part of the crew call for this performance.` });
     const blocked = unavailabilityFor(db, volunteer.id, perf.performance_date);
     if (blocked.length > 0) {
       return res.status(409).json({
@@ -110,9 +115,10 @@ function assignmentsRouter(db) {
     }
 
     try {
+      const changed = newPerf !== existing.performance_id || newRole !== existing.role || Number(vid) !== existing.volunteer_id;
       db.prepare(
-        'UPDATE assignments SET performance_id = ?, role = ?, volunteer_id = ? WHERE id = ?'
-      ).run(newPerf, newRole, Number(vid), existing.id);
+        'UPDATE assignments SET performance_id = ?, role = ?, volunteer_id = ?, confirmed = ?, notified = ? WHERE id = ?'
+      ).run(newPerf, newRole, Number(vid), changed ? 0 : existing.confirmed, changed ? 0 : existing.notified, existing.id);
       return res.json(toApi(getAssignment(db, existing.id), db));
     } catch (err) {
       if (isOneRoleConflict(err)) {

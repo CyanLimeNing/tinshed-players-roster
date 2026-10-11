@@ -14,7 +14,8 @@
  */
 
 const express = require('express');
-const { CALL_TEMPLATES } = require('../db');
+const { CALL_TEMPLATES, unavailabilityFor } = require('../db');
+const { cleanText, isIsoDate, isTime } = require('../validation');
 
 function productionsRouter(db) {
   const router = express.Router();
@@ -94,12 +95,15 @@ function productionsRouter(db) {
     if (!production) return res.status(404).json({ error: 'Production not found.' });
     const { date, startTime, start_time: startTimeAlt, callTemplate } = req.body || {};
     const start = startTime || startTimeAlt;
-    if (!date || !start) {
+    if (!isIsoDate(date) || !isTime(start)) {
       return res
         .status(400)
-        .json({ error: 'A performance needs a date and a start time.' });
+        .json({ error: 'A performance needs a real date (YYYY-MM-DD) and time (HH:mm).' });
     }
-    const template = CALL_TEMPLATES[callTemplate] ? callTemplate : 'evening';
+    if (callTemplate !== undefined && !Object.hasOwn(CALL_TEMPLATES, callTemplate)) {
+      return res.status(400).json({ error: 'callTemplate must be evening or matinee.' });
+    }
+    const template = callTemplate || 'evening';
     const result = db
       .prepare('INSERT INTO performances (production_id, performance_date, start_time) VALUES (?, ?, ?)')
       .run(production.id, String(date), String(start));
@@ -116,20 +120,32 @@ function productionsRouter(db) {
 
   // Change or remove a performance; other performances are unaffected.
   router.put('/:id/performances/:perfId', (req, res) => {
-    const perf = db.prepare('SELECT * FROM performances WHERE id = ?').get(req.params.perfId);
+    const perf = db.prepare('SELECT * FROM performances WHERE id = ? AND production_id = ?').get(req.params.perfId, req.params.id);
     if (!perf) return res.status(404).json({ error: 'Performance not found.' });
     const { date, startTime, start_time: startTimeAlt } = req.body || {};
+    const nextDate = date === undefined ? perf.performance_date : date;
+    const nextTime = startTime ?? startTimeAlt ?? perf.start_time;
+    if (!isIsoDate(nextDate) || !isTime(nextTime)) {
+      return res.status(400).json({ error: 'A performance needs a real date (YYYY-MM-DD) and time (HH:mm).' });
+    }
+    const assigned = db.prepare('SELECT volunteer_id FROM assignments WHERE performance_id = ?').all(perf.id);
+    if (assigned.some(a => unavailabilityFor(db, a.volunteer_id, nextDate).length)) {
+      return res.status(409).json({ error: 'Refused: an assigned volunteer is unavailable on the proposed date. Resolve the assignment first.' });
+    }
     db.prepare('UPDATE performances SET performance_date = ?, start_time = ? WHERE id = ?').run(
-      date !== undefined ? String(date) : perf.performance_date,
-      startTime !== undefined ? String(startTime) : startTimeAlt !== undefined ? String(startTimeAlt) : perf.start_time,
+      nextDate,
+      nextTime,
       perf.id
     );
+    if (nextDate !== perf.performance_date || nextTime !== perf.start_time) {
+      db.prepare('UPDATE assignments SET confirmed = 0, notified = 0 WHERE performance_id = ?').run(perf.id);
+    }
     const row = db.prepare('SELECT * FROM performances WHERE id = ?').get(perf.id);
     res.json(toApiPerformance(row));
   });
 
   router.delete('/:id/performances/:perfId', (req, res) => {
-    const perf = db.prepare('SELECT * FROM performances WHERE id = ?').get(req.params.perfId);
+    const perf = db.prepare('SELECT * FROM performances WHERE id = ? AND production_id = ?').get(req.params.perfId, req.params.id);
     if (!perf) return res.status(404).json({ error: 'Performance not found.' });
     db.prepare('DELETE FROM performances WHERE id = ?').run(perf.id);
     res.status(204).end();
@@ -137,7 +153,7 @@ function productionsRouter(db) {
 
   // The crew call of a performance: roles and how many people each needs.
   router.get('/:id/performances/:perfId/roles', (req, res) => {
-    const perf = db.prepare('SELECT * FROM performances WHERE id = ?').get(req.params.perfId);
+    const perf = db.prepare('SELECT * FROM performances WHERE id = ? AND production_id = ?').get(req.params.perfId, req.params.id);
     if (!perf) return res.status(404).json({ error: 'Performance not found.' });
     const rows = db
       .prepare('SELECT role, required_count FROM crew_roles WHERE performance_id = ? ORDER BY id')
@@ -147,24 +163,39 @@ function productionsRouter(db) {
 
   // Replace the whole crew call (kept in sync when the roster is revised).
   router.put('/:id/performances/:perfId/roles', (req, res) => {
-    const perf = db.prepare('SELECT * FROM performances WHERE id = ?').get(req.params.perfId);
+    const perf = db.prepare('SELECT * FROM performances WHERE id = ? AND production_id = ?').get(req.params.perfId, req.params.id);
     if (!perf) return res.status(404).json({ error: 'Performance not found.' });
     const { roles } = req.body || {};
     if (!Array.isArray(roles) || roles.length === 0) {
       return res.status(400).json({ error: 'roles must be a non-empty array.' });
     }
+    const names = new Set();
     for (const r of roles) {
-      if (!r.role || !Number.isInteger(r.required_count) || r.required_count < 1) {
+      if (!r || !cleanText(r.role) || !Number.isInteger(r.required_count) || r.required_count < 1) {
         return res
           .status(400)
           .json({ error: 'Each role needs a name and a required_count of at least 1.' });
       }
+      const role = cleanText(r.role);
+      if (names.has(role)) return res.status(400).json({ error: 'Crew role names must be unique.' });
+      names.add(role);
     }
-    db.prepare('DELETE FROM crew_roles WHERE performance_id = ?').run(perf.id);
+    const assignedRoles = db.prepare('SELECT DISTINCT role FROM assignments WHERE performance_id = ?').all(perf.id);
+    if (assignedRoles.some(a => !names.has(a.role))) {
+      return res.status(409).json({ error: 'Reassign or remove volunteers before removing their crew role.' });
+    }
     const insert = db.prepare(
       'INSERT INTO crew_roles (performance_id, role, required_count) VALUES (?, ?, ?)'
     );
-    for (const { role, required_count } of roles) insert.run(perf.id, role, required_count);
+    db.exec('BEGIN');
+    try {
+      db.prepare('DELETE FROM crew_roles WHERE performance_id = ?').run(perf.id);
+      for (const { role, required_count } of roles) insert.run(perf.id, cleanText(role), required_count);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
     const rows = db
       .prepare('SELECT role, required_count FROM crew_roles WHERE performance_id = ? ORDER BY id')
       .all(perf.id);
