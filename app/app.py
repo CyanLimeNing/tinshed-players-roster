@@ -1,189 +1,494 @@
-from flask import Flask, request, jsonify
+"""Tinshed Players Crew Roster -- Flask REST API (SQLite-backed).
+
+This module implements the roster management web application used as the
+software artefact for ISYS3001 Assessment 2 (Configuration and Procurement
+Management). Data is persisted in a SQLite database so that the roster
+survives server restarts.
+
+The application exposes four resource groups over a REST API:
+
+- volunteers  (name + contact, soft deactivate flag)
+- productions (titled shows)
+- performances (a dated/show-time instance of a production)
+- assignments (a volunteer placed in a role for a performance)
+
+Domain rule: a volunteer may hold at most one role in any single performance.
+This rule is enforced both in the application layer and as a UNIQUE database
+constraint, so a second assignment for the same volunteer and performance is
+refused with HTTP 400.
+"""
+
+import json
+import os
+import sqlite3
+
+from flask import Flask, g, jsonify, request
 
 app = Flask(__name__)
 
-volunteers = []
-productions = []
-performances = []
-assignments = []
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+# Application settings are read from config/app.json (checked into the
+# repository as deployment configuration). Environment variables override the
+# file values so secrets and machine-specific values never need to be stored
+# in version control.
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-next_volunteer_id = 1
-next_production_id = 1
-next_performance_id = 1
-next_assignment_id = 1
+_DEFAULTS = {
+    "DB_PATH": os.path.join(_BASE_DIR, "data", "tinshed.db"),
+    "PORT": 5000,
+    "DEBUG": True,
+}
+
+
+def _load_config():
+    """Read config/app.json and merge it over the safe defaults."""
+    config = dict(_DEFAULTS)
+    config_path = os.path.join(_BASE_DIR, "config", "app.json")
+    try:
+        with open(config_path, "r", encoding="utf-8") as handle:
+            file_config = json.load(handle)
+        config.update(file_config)
+    except (OSError, ValueError):
+        # Missing or malformed config file: fall back to defaults.
+        pass
+    # Environment variables take precedence over the file.
+    config["DB_PATH"] = os.environ.get("DB_PATH", config["DB_PATH"])
+    if not os.path.isabs(config["DB_PATH"]):
+        config["DB_PATH"] = os.path.join(_BASE_DIR, config["DB_PATH"])
+    config["PORT"] = int(os.environ.get("PORT", config["PORT"]))
+    config["HOST"] = os.environ.get("HOST", config.get("HOST", "127.0.0.1"))
+    config["ENV"] = os.environ.get("ENV", config.get("ENV", "development"))
+    config["DEBUG"] = os.environ.get("DEBUG", str(config["DEBUG"])).lower() == "true"
+    return config
+
+
+_CONFIG = _load_config()
+app.config["DB_PATH"] = _CONFIG["DB_PATH"]
+app.config["PORT"] = _CONFIG["PORT"]
+app.config["HOST"] = _CONFIG["HOST"]
+app.config["ENV"] = _CONFIG["ENV"]
+app.config["DEBUG"] = _CONFIG["DEBUG"]
+
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS volunteers (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL,
+    contact    TEXT,
+    is_active  INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS productions (
+    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT    NOT NULL
+);
+CREATE TABLE IF NOT EXISTS performances (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    production_id INTEGER NOT NULL,
+    show_date     TEXT,
+    start_time    TEXT,
+    FOREIGN KEY (production_id) REFERENCES productions(id)
+);
+CREATE TABLE IF NOT EXISTS assignments (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    volunteer_id   INTEGER NOT NULL,
+    performance_id INTEGER NOT NULL,
+    role           TEXT,
+    confirmed      INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (volunteer_id, performance_id),
+    FOREIGN KEY (volunteer_id) REFERENCES volunteers(id),
+    FOREIGN KEY (performance_id) REFERENCES performances(id)
+);
+"""
+
+
+def _connect():
+    """Open a fresh connection and ensure the schema exists."""
+    db_dir = os.path.dirname(app.config["DB_PATH"])
+    if db_dir and not os.path.isdir(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+    conn = sqlite3.connect(app.config["DB_PATH"])
+    conn.row_factory = sqlite3.Row
+    conn.executescript(_SCHEMA)
+    conn.commit()
+    return conn
+
+
+def get_db():
+    """Return a per-request database connection, reusing it within a request."""
+    db = getattr(g, "_db", None)
+    if db is None:
+        db = g._db = _connect()
+    return db
+
+
+@app.teardown_appcontext
+def close_db(_exc):
+    """Close the per-request connection when the request ends."""
+    db = getattr(g, "_db", None)
+    if db is not None:
+        db.close()
+
 
 def reset_data():
-    global volunteers, productions, performances, assignments
-    global next_volunteer_id, next_production_id, next_performance_id, next_assignment_id
-    volunteers.clear()
-    productions.clear()
-    performances.clear()
-    assignments.clear()
-    next_volunteer_id = 1
-    next_production_id = 1
-    next_performance_id = 1
-    next_assignment_id = 1
+    """Clear all rows and reset auto-increment counters (used by the tests)."""
+    conn = _connect()
+    try:
+        conn.executescript(
+            "DELETE FROM assignments;"
+            "DELETE FROM performances;"
+            "DELETE FROM productions;"
+            "DELETE FROM volunteers;"
+            "DELETE FROM sqlite_sequence;"
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
+
+# ---------------------------------------------------------------------------
+# Row -> JSON helpers (SQLite stores booleans as 0/1)
+# ---------------------------------------------------------------------------
+def _volunteer_dict(row):
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "contact": row["contact"],
+        "is_active": bool(row["is_active"]),
+    }
+
+
+def _production_dict(row):
+    return {"id": row["id"], "title": row["title"]}
+
+
+def _performance_dict(row):
+    return {
+        "id": row["id"],
+        "production_id": row["production_id"],
+        "show_date": row["show_date"],
+        "start_time": row["start_time"],
+    }
+
+
+def _assignment_dict(row):
+    return {
+        "id": row["id"],
+        "volunteer_id": row["volunteer_id"],
+        "performance_id": row["performance_id"],
+        "role": row["role"],
+        "confirmed": bool(row["confirmed"]),
+    }
+
+
+# ===========================================================================
+# Volunteers
+# ===========================================================================
 @app.route("/volunteers", methods=["GET"])
 def get_all_volunteers():
-    return jsonify(volunteers)
+    rows = get_db().execute("SELECT * FROM volunteers ORDER BY id").fetchall()
+    return jsonify([_volunteer_dict(r) for r in rows])
+
 
 @app.route("/volunteers", methods=["POST"])
 def create_volunteer():
-    global next_volunteer_id
-    data = request.get_json()
-    new_v = {
-        "id": next_volunteer_id,
-        "name": data.get("name"),
-        "contact": data.get("contact"),
-        "is_active": True
-    }
-    volunteers.append(new_v)
-    next_volunteer_id += 1
-    return jsonify(new_v), 201
+    data = request.get_json() or {}
+    name = data.get("name")
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    cur = get_db().execute(
+        "INSERT INTO volunteers (name, contact, is_active) VALUES (?, ?, 1)",
+        (name, data.get("contact")),
+    )
+    get_db().commit()
+    row = get_db().execute(
+        "SELECT * FROM volunteers WHERE id = ?", (cur.lastrowid,)
+    ).fetchone()
+    return jsonify(_volunteer_dict(row)), 201
+
 
 @app.route("/volunteers/<int:vid>", methods=["GET"])
 def get_volunteer(vid):
-    v = next((x for x in volunteers if x["id"] == vid), None)
-    if not v:
+    row = get_db().execute(
+        "SELECT * FROM volunteers WHERE id = ?", (vid,)
+    ).fetchone()
+    if not row:
         return jsonify({"message": "Volunteer not found"}), 404
-    return jsonify(v)
+    return jsonify(_volunteer_dict(row))
+
 
 @app.route("/volunteers/<int:vid>", methods=["PUT"])
 def update_volunteer(vid):
-    v = next((x for x in volunteers if x["id"] == vid), None)
-    if not v:
+    db = get_db()
+    row = db.execute("SELECT * FROM volunteers WHERE id = ?", (vid,)).fetchone()
+    if not row:
         return jsonify({"message": "Volunteer not found"}), 404
-    data = request.get_json()
-    v["name"] = data.get("name", v["name"])
-    v["contact"] = data.get("contact", v["contact"])
-    v["is_active"] = data.get("is_active", v["is_active"])
-    return jsonify(v)
+    data = request.get_json() or {}
+    db.execute(
+        "UPDATE volunteers SET name = ?, contact = ?, is_active = ? WHERE id = ?",
+        (
+            data.get("name", row["name"]),
+            data.get("contact", row["contact"]),
+            int(data.get("is_active", bool(row["is_active"]))),
+            vid,
+        ),
+    )
+    db.commit()
+    updated = db.execute(
+        "SELECT * FROM volunteers WHERE id = ?", (vid,)
+    ).fetchone()
+    return jsonify(_volunteer_dict(updated))
+
 
 @app.route("/volunteers/<int:vid>", methods=["DELETE"])
 def delete_volunteer(vid):
-    global volunteers
-    v = next((x for x in volunteers if x["id"] == vid), None)
-    if not v:
-        return jsonify({"message": "Volunteer not found"}),404
-    volunteers = [x for x in volunteers if x["id"] != vid]
-    return jsonify({"message":"Volunteer deleted"})
+    db = get_db()
+    row = db.execute("SELECT * FROM volunteers WHERE id = ?", (vid,)).fetchone()
+    if not row:
+        return jsonify({"message": "Volunteer not found"}), 404
+    db.execute("DELETE FROM volunteers WHERE id = ?", (vid,))
+    db.commit()
+    return jsonify({"message": "Volunteer deleted"})
 
+
+# ===========================================================================
+# Productions
+# ===========================================================================
 @app.route("/productions", methods=["GET"])
 def get_all_productions():
-    return jsonify(productions)
+    rows = get_db().execute("SELECT * FROM productions ORDER BY id").fetchall()
+    return jsonify([_production_dict(r) for r in rows])
+
 
 @app.route("/productions", methods=["POST"])
 def create_production():
-    global next_production_id
-    data = request.get_json()
-    prod = {
-        "id": next_production_id,
-        "title": data.get("title")
-    }
-    productions.append(prod)
-    next_production_id +=1
-    return jsonify(prod),201
+    data = request.get_json() or {}
+    title = data.get("title")
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+    db = get_db()
+    cur = db.execute("INSERT INTO productions (title) VALUES (?)", (title,))
+    db.commit()
+    row = db.execute(
+        "SELECT * FROM productions WHERE id = ?", (cur.lastrowid,)
+    ).fetchone()
+    return jsonify(_production_dict(row)), 201
+
 
 @app.route("/productions/<int:pid>", methods=["GET"])
 def get_production(pid):
-    p = next((x for x in productions if x["id"]==pid), None)
-    if not p:
-        return jsonify({"message":"Production not found"}),404
-    return jsonify(p)
+    row = get_db().execute(
+        "SELECT * FROM productions WHERE id = ?", (pid,)
+    ).fetchone()
+    if not row:
+        return jsonify({"message": "Production not found"}), 404
+    return jsonify(_production_dict(row))
+
 
 @app.route("/productions/<int:pid>", methods=["PUT"])
 def update_production(pid):
-    p = next((x for x in productions if x["id"]==pid), None)
-    if not p:
-        return jsonify({"message":"Production not found"}),404
-    data = request.get_json()
-    p["title"] = data.get("title", p["title"])
-    return jsonify(p)
+    db = get_db()
+    row = db.execute("SELECT * FROM productions WHERE id = ?", (pid,)).fetchone()
+    if not row:
+        return jsonify({"message": "Production not found"}), 404
+    data = request.get_json() or {}
+    db.execute(
+        "UPDATE productions SET title = ? WHERE id = ?",
+        (data.get("title", row["title"]), pid),
+    )
+    db.commit()
+    updated = db.execute(
+        "SELECT * FROM productions WHERE id = ?", (pid,)
+    ).fetchone()
+    return jsonify(_production_dict(updated))
+
 
 @app.route("/productions/<int:pid>", methods=["DELETE"])
 def delete_production(pid):
-    global productions
-    p = next((x for x in productions if x["id"]==pid), None)
-    if not p:
-        return jsonify({"message":"Production not found"}),404
-    productions = [x for x in productions if x["id"] != pid]
-    return jsonify({"message":"Production deleted"})
+    db = get_db()
+    row = db.execute("SELECT * FROM productions WHERE id = ?", (pid,)).fetchone()
+    if not row:
+        return jsonify({"message": "Production not found"}), 404
+    db.execute("DELETE FROM productions WHERE id = ?", (pid,))
+    db.commit()
+    return jsonify({"message": "Production deleted"})
 
+
+# ===========================================================================
+# Performances
+# ===========================================================================
 @app.route("/performances", methods=["GET"])
 def get_all_performances():
-    return jsonify(performances)
+    rows = get_db().execute("SELECT * FROM performances ORDER BY id").fetchall()
+    return jsonify([_performance_dict(r) for r in rows])
+
 
 @app.route("/performances", methods=["POST"])
 def create_performance():
-    global next_performance_id
-    data = request.get_json()
-    perf = {
-        "id": next_performance_id,
-        "production_id": data.get("production_id"),
-        "show_date": data.get("show_date"),
-        "start_time": data.get("start_time")
-    }
-    performances.append(perf)
-    next_performance_id +=1
-    return jsonify(perf),201
+    data = request.get_json() or {}
+    db = get_db()
+    production_id = data.get("production_id")
+    prod = db.execute(
+        "SELECT * FROM productions WHERE id = ?", (production_id,)
+    ).fetchone()
+    if not prod:
+        return jsonify({"error": "Production not found"}), 400
+    cur = db.execute(
+        "INSERT INTO performances (production_id, show_date, start_time)"
+        " VALUES (?, ?, ?)",
+        (production_id, data.get("show_date"), data.get("start_time")),
+    )
+    db.commit()
+    row = db.execute(
+        "SELECT * FROM performances WHERE id = ?", (cur.lastrowid,)
+    ).fetchone()
+    return jsonify(_performance_dict(row)), 201
+
 
 @app.route("/performances/<int:pfid>", methods=["GET"])
 def get_performance(pfid):
-    pf = next((x for x in performances if x["id"]==pfid), None)
-    if not pf:
-        return jsonify({"message":"Performance not found"}),404
-    return jsonify(pf)
+    row = get_db().execute(
+        "SELECT * FROM performances WHERE id = ?", (pfid,)
+    ).fetchone()
+    if not row:
+        return jsonify({"message": "Performance not found"}), 404
+    return jsonify(_performance_dict(row))
 
+
+@app.route("/performances/<int:pfid>", methods=["PUT"])
+def update_performance(pfid):
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM performances WHERE id = ?", (pfid,)
+    ).fetchone()
+    if not row:
+        return jsonify({"message": "Performance not found"}), 404
+    data = request.get_json() or {}
+    db.execute(
+        "UPDATE performances SET production_id = ?, show_date = ?, start_time = ?"
+        " WHERE id = ?",
+        (
+            data.get("production_id", row["production_id"]),
+            data.get("show_date", row["show_date"]),
+            data.get("start_time", row["start_time"]),
+            pfid,
+        ),
+    )
+    db.commit()
+    updated = db.execute(
+        "SELECT * FROM performances WHERE id = ?", (pfid,)
+    ).fetchone()
+    return jsonify(_performance_dict(updated))
+
+
+@app.route("/performances/<int:pfid>", methods=["DELETE"])
+def delete_performance(pfid):
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM performances WHERE id = ?", (pfid,)
+    ).fetchone()
+    if not row:
+        return jsonify({"message": "Performance not found"}), 404
+    db.execute("DELETE FROM performances WHERE id = ?", (pfid,))
+    db.commit()
+    return jsonify({"message": "Performance deleted"})
+
+
+# ===========================================================================
+# Assignments (the core rostering business rule lives here)
+# ===========================================================================
 @app.route("/assignments", methods=["GET"])
 def get_all_assignments():
-    return jsonify(assignments)
+    rows = get_db().execute("SELECT * FROM assignments ORDER BY id").fetchall()
+    return jsonify([_assignment_dict(r) for r in rows])
+
 
 @app.route("/assignments", methods=["POST"])
 def create_assignment():
-    global next_assignment_id
-    data = request.get_json()
+    db = get_db()
+    data = request.get_json() or {}
     volunteer_id = data.get("volunteer_id")
     performance_id = data.get("performance_id")
     role = data.get("role")
 
-    conflict = any(
-        a["volunteer_id"] == volunteer_id and a["performance_id"] == performance_id
-        for a in assignments
-    )
-    if conflict:
-        return jsonify({"error":"Rule violation: One volunteer cannot hold multiple roles for same performance"}),400
+    # Referential integrity: the volunteer and the performance must exist.
+    volunteer = db.execute(
+        "SELECT * FROM volunteers WHERE id = ?", (volunteer_id,)
+    ).fetchone()
+    performance = db.execute(
+        "SELECT * FROM performances WHERE id = ?", (performance_id,)
+    ).fetchone()
+    if not volunteer or not performance:
+        return jsonify({"error": "Volunteer or performance not found"}), 400
 
-    new_a = {
-        "id": next_assignment_id,
-        "volunteer_id": volunteer_id,
-        "performance_id": performance_id,
-        "role": role,
-        "confirmed": False
-    }
-    assignments.append(new_a)
-    next_assignment_id += 1
-    return jsonify(new_a),201
+    # Business rule: a volunteer may hold at most one role per performance.
+    conflict = db.execute(
+        "SELECT * FROM assignments"
+        " WHERE volunteer_id = ? AND performance_id = ?",
+        (volunteer_id, performance_id),
+    ).fetchone()
+    if conflict:
+        return jsonify(
+            {"error": "Rule violation: One volunteer cannot hold multiple roles"
+                      " for same performance"}
+        ), 400
+
+    cur = db.execute(
+        "INSERT INTO assignments (volunteer_id, performance_id, role, confirmed)"
+        " VALUES (?, ?, ?, 0)",
+        (volunteer_id, performance_id, role),
+    )
+    db.commit()
+    row = db.execute(
+        "SELECT * FROM assignments WHERE id = ?", (cur.lastrowid,)
+    ).fetchone()
+    return jsonify(_assignment_dict(row)), 201
+
 
 @app.route("/assignments/<int:aid>", methods=["PUT"])
 def update_assignment(aid):
-    a = next((x for x in assignments if x["id"]==aid), None)
-    if not a:
-        return jsonify({"message":"Assignment not found"}),404
-    data = request.get_json()
-    a["role"] = data.get("role", a["role"])
-    a["confirmed"] = data.get("confirmed", a["confirmed"])
-    return jsonify(a)
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM assignments WHERE id = ?", (aid,)
+    ).fetchone()
+    if not row:
+        return jsonify({"message": "Assignment not found"}), 404
+    data = request.get_json() or {}
+    db.execute(
+        "UPDATE assignments SET role = ?, confirmed = ? WHERE id = ?",
+        (
+            data.get("role", row["role"]),
+            int(data.get("confirmed", bool(row["confirmed"]))),
+            aid,
+        ),
+    )
+    db.commit()
+    updated = db.execute(
+        "SELECT * FROM assignments WHERE id = ?", (aid,)
+    ).fetchone()
+    return jsonify(_assignment_dict(updated))
+
 
 @app.route("/assignments/<int:aid>", methods=["DELETE"])
 def delete_assignment(aid):
-    global assignments
-    a = next((x for x in assignments if x["id"]==aid), None)
-    if not a:
-        return jsonify({"message":"Assignment not found"}),404
-    assignments = [x for x in assignments if x["id"] != aid]
-    return jsonify({"message":"Assignment removed"})
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM assignments WHERE id = ?", (aid,)
+    ).fetchone()
+    if not row:
+        return jsonify({"message": "Assignment not found"}), 404
+    db.execute("DELETE FROM assignments WHERE id = ?", (aid,))
+    db.commit()
+    return jsonify({"message": "Assignment removed"})
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Development entry point. Production uses wsgi.py with a WSGI server.
+    app.run(
+        debug=app.config["DEBUG"],
+        host=app.config["HOST"],
+        port=app.config["PORT"],
+    )

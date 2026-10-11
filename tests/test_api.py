@@ -3,8 +3,11 @@ from app import app
 from app.app import reset_data
 
 @pytest.fixture
-def client():
+def client(tmp_path):
+    # Isolate every test in its own throwaway database so tests never touch
+    # the development data file (config management: test env != dev env).
     app.config["TESTING"] = True
+    app.config["DB_PATH"] = str(tmp_path / "test.db")
     reset_data()
     with app.test_client() as c:
         yield c
