@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime data (SQLite database files are generated at run time)
+data/
+*.db
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
