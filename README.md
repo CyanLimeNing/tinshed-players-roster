@@ -27,12 +27,12 @@ needs a real team member's PR review. See
 branch, PR and final-commit evidence. A connector 403 concerns that operation;
 it does not establish that every Git transport is unavailable.
 
-## Run from GitHub after the candidate is published
+## Run the candidate from GitHub
 
 The team repository is https://github.com/CyanLimeNing/tinshed-players-roster.
 The verified starting `main` is the A2 baseline
 `f2999cfdd1d213ce8548ac142c35944decf85d9b`; cloning it alone does not retrieve
-rc.2. **Only after `codex/roster-validation` has actually been pushed**, use:
+rc.2. The topic branch is published in draft PR #5; use:
 
 ```bash
 git clone https://github.com/CyanLimeNing/tinshed-players-roster.git
@@ -44,8 +44,8 @@ npm start
 ```
 
 After a reviewed merge, use the real merge commit or release tag recorded in
-the integration review. These conditional commands do not prove a successful
-remote checkout, PR review, merge or release.
+the integration review. PR #5 is awaiting a real team member's review; no merge
+or release is implied by the published topic branch.
 
 ## Interface
 

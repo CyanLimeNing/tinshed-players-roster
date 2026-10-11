@@ -19,9 +19,14 @@ prepared with AI assistance, separate from the student's formal assessment repor
   changes; the synthetic snapshot is not part of the candidate's ancestry.
   No global proxy setting or repository security setting was changed.
 
-Publication status: pending final publication attempt. The topic is
-`codex/roster-validation`, targeting team main. Actual PR/commit links will be
-recorded only if the remote operation succeeds.
+Publication status: **published to the team repository as draft PR #5**:
+https://github.com/CyanLimeNing/tinshed-players-roster/pull/5.
+The branch is `codex/roster-validation`, targeting main. Its ancestry is the
+actual team baseline. Git push and PR creation used the existing Git Credential
+Manager account and configured proxy; the connector separately returned 403.
+No merge, tag or release has been performed. The delivery's final-commit metadata
+records the exact selected PR head and results; do not substitute the earlier
+prepublication dirty-working-tree metadata for that run.
 
 ## Independent AI technical review and disposition
 
@@ -46,11 +51,11 @@ handover remain; this conclusion is bounded by the recorded test scope.
 
 | Gate | Evidence / remaining requirement |
 |---|---|
-| Code committed and pushed on a story branch | Local imported candidate and tests exist; remote publication outcome must be verified |
+| Code committed and pushed on a story branch | Team topic branch and draft PR #5 exist; mapping to the real Jira story remains pending |
 | Every Jira AC met and demonstrated | R01-R07 technical traceability exists; real keys, approved AC and demonstration pending account connection |
 | Another team member's PR review resolved before merge | Independent AI technical review above is complete; real human teammate PR review is still pending |
 | Covering automated tests pass, including one-role rule where applicable | 59-test suite includes one-role creation/move/replacement checks and refusal-state comparisons |
-| README-only clean checkout runs | Automated independent clean-source/process-start check to be recorded; a real member must reproduce the actual published checkout |
+| README-only clean checkout runs | Final delivery records an automated actual GitHub clone/install/start/restart check; a teammate's own installation record is separate |
 | No known critical defects | Reproduced historical-assignment defect fixed; tested core paths pass; known limits disclosed |
 | Jira reflects reality; decisions/assumptions in Confluence | Account currently unconnected; local mapping and DECISIONS are prepared but unpublished |
 
