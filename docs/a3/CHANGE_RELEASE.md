@@ -1,5 +1,7 @@
 # A3 change and release record
 
+> Current follow-up candidate: rc.3 (15 October 2026). See [RC3_REVIEW_AND_VALIDATION.md](RC3_REVIEW_AND_VALIDATION.md) for the role-response correction and new tests. The rc.2 execution records below retain their original dates and source identity.
+
 Recorded 11 October 2026. Version 1.2.0-rc.2 is a review candidate, not an approved
 release. Starting team main: f2999cfdd1d213ce8548ac142c35944decf85d9b. The personal
 A2 repository's v1.1.x tags are separate references and are not team release tags.

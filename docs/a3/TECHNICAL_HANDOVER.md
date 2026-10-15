@@ -1,5 +1,7 @@
 # A3 technical handover - candidate for team review
 
+> Current follow-up candidate: rc.3 (15 October 2026). See [RC3_REVIEW_AND_VALIDATION.md](RC3_REVIEW_AND_VALIDATION.md) for the role-response correction and new tests. The rc.2 execution records below retain their original dates and source identity.
+
 Team repository: CyanLimeNing/tinshed-players-roster.
 Prepared 11 October 2026; candidate 1.2.0-rc.2. Baseline: f2999cfdd1d213ce8548ac142c35944decf85d9b.
 This is a factual technical contribution prepared with AI assistance. It is not

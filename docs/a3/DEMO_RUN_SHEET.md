@@ -1,5 +1,7 @@
 # Technical demonstration segment — approximately 3 minutes
 
+> Current follow-up candidate: rc.3 (15 October 2026). See [RC3_REVIEW_AND_VALIDATION.md](RC3_REVIEW_AND_VALIDATION.md) for the role-response correction and new tests. The rc.2 execution records below retain their original dates and source identity.
+
 Use fictional demo data and practise this as your portion of the team's talk.
 This is a technical run sheet, not a completed presentation, human UAT or final
 report text. The formal A3 Brief requires the complete team presentation to

@@ -1,5 +1,7 @@
 # A3 technical decision record
 
+> Current follow-up candidate: rc.3 (15 October 2026). See [RC3_REVIEW_AND_VALIDATION.md](RC3_REVIEW_AND_VALIDATION.md) for the role-response correction and new tests. The rc.2 execution records below retain their original dates and source identity.
+
 Recorded 11 October 2026. Local decision IDs below are not Jira keys. These are
 implemented technical choices or proposals based on source and actual checks,
 not invented team meetings, approvals or client decisions. Confluence publication

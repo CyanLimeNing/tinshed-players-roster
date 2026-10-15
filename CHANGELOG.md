@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.2.0-rc.3] — 2026-10-15 — review candidate
+
+### Fixed
+
+- Ignore stale crew-role responses after the assignment editor switches
+  performances. A late response can no longer replace a newer role choice.
+- Block Role and Save while the selected performance's roles are loading
+  or unavailable. A failed current request can be retried by reselecting a
+  performance; obsolete failures do not replace the current editor state.
+
+### Added
+
+- UIROLE01–02 execute the actual client/editor code with controlled response
+  ordering and a real isolated API/SQLite server, covering the selected duty,
+  pending/failed loading, Save blocking, recovery and stale failures.
+- The suite contains 59 existing API/persistence tests plus two client-state
+  regressions. Tests are AI technical evidence; real member review remains
+  a separate completion condition. This entry does not imply merge/release.
+
 ## [1.2.0-rc.2] — 2026-10-11 — review candidate
 
 This is the local A3 integration candidate, not an approved team release.

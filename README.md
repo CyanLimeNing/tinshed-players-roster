@@ -1,9 +1,11 @@
 # The Tinshed Players - Crew Roster
 
-ISYS3001 teaching prototype. Candidate **1.2.0-rc.2** adds editable roster
+ISYS3001 teaching prototype. Candidate **1.2.0-rc.3** adds editable roster
 controls and validation to the team A2 baseline, and fixes unchanged Save
 silently replacing an inactive volunteer's historical assignment. Use fictional demonstration data: there is
 no authentication, and anyone who can reach the server can read/change data.
+The rc.3 assignment editor ignores obsolete role responses after switching
+performances and blocks saving until the current crew roles are ready.
 
 ## Run the current candidate from the supplied source ZIP
 
@@ -12,7 +14,7 @@ external database or compilation is needed. The legacy `requirements.txt` is not
 used by this Node application.
 
 ```bash
-# Extract the supplied rc.2 source ZIP first, then open its source directory.
+# Extract the supplied current source ZIP first, then open its source directory.
 cd tinshed-players-roster
 npm ci
 npm test
@@ -32,7 +34,7 @@ it does not establish that every Git transport is unavailable.
 The team repository is https://github.com/CyanLimeNing/tinshed-players-roster.
 The verified starting `main` is the A2 baseline
 `f2999cfdd1d213ce8548ac142c35944decf85d9b`; cloning it alone does not retrieve
-rc.2. The topic branch is published in draft PR #5; use:
+the current candidate. The topic branch is published in draft PR #5; use:
 
 ```bash
 git clone https://github.com/CyanLimeNing/tinshed-players-roster.git
@@ -94,9 +96,11 @@ npm test
 npm run test:evidence -- local-review
 ```
 
-The rc.2 suite has 59 behavioural API/persistence tests: 33 inherited,
+The current suite has 59 behavioural API/persistence tests: 33 inherited,
 20 validation, one original file-persistence test and five independent AI
-technical-review regressions (REV01-05). The prepublication working-tree run
+technical-review regressions (REV01-05), plus two client-state regressions
+(UIROLE01-02) for role-response ordering, saving, failure and recovery.
+The earlier rc.2 prepublication working-tree run
 passed 59/59; final-commit evidence is recorded separately in the integration
 review and retained run metadata. Older rc.1 logs of 54 tests remain historical.
 `helpers.js` is not a test. Evidence records TAP, timestamps, runtime and source

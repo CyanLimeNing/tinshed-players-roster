@@ -17,14 +17,14 @@ const el = (tag, attrs = {}, ...children) => {
   return node;
 };
 
-async function api(method, path, body) {
+async function api(method, path, body, { quietNetworkError = false } = {}) {
   let res;
   try { res = await fetch(path, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   }); } catch {
-    banner('Connection lost. Check the server and try again.');
+    if (!quietNetworkError) banner('Connection lost. Check the server and try again.');
     throw new Error('Server connection failed');
   }
   const text = await res.text();
@@ -52,7 +52,7 @@ function info(message) {
 }
 
 // One keyboard-accessible editor, with server refusals kept beside its fields.
-function editor(title, fields, save, note = '') {
+function editor(title, fields, save, note = '', isBlocked = () => false) {
   const dialog = el('dialog', { 'aria-labelledby': 'editor-title' });
   const form = el('form', {}, el('h2', { id: 'editor-title', text: title }));
   if (note) form.append(el('p', { text: note }));
@@ -62,6 +62,7 @@ function editor(title, fields, save, note = '') {
   });
   const error = el('p', { class: 'error-text', role: 'alert' });
   const submit = el('button', { type: 'submit', text: 'Save changes' });
+  submit.disabled = isBlocked();
   const cancel = el('button', { type: 'button', class: 'secondary', text: 'Cancel' });
   cancel.addEventListener('click', () => dialog.close());
   form.append(error, el('div', { class: 'actions' }, submit, cancel));
@@ -72,10 +73,11 @@ function editor(title, fields, save, note = '') {
       if (result.status >= 200 && result.status < 300) dialog.close();
       else error.textContent = result.body?.error || 'Could not save changes.';
     } catch { error.textContent = 'Connection lost. Check the server and try again.'; }
-    finally { submit.disabled = false; }
+    finally { submit.disabled = isBlocked(); }
   });
   dialog.addEventListener('close', () => dialog.remove());
   dialog.append(form); document.body.append(dialog); dialog.showModal();
+  return dialog;
 }
 
 function action(text, handler) {
@@ -94,13 +96,48 @@ async function editAssignment(assignment, performanceId, currentRole) {
   // browser silently selects the first active volunteer and Save replaces history.
   const volunteer = el('select', {}, ...volunteerOptions(assignment.volunteerId, true));
   const role = el('select', {});
+  let roleRequest = 0;
+  let rolesReady = false;
+  let roleError = '';
+  let assignmentDialog;
+  const updateRoleControls = () => {
+    role.disabled = !rolesReady;
+    const submit = assignmentDialog?.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = !rolesReady;
+  };
   const loadRoles = async () => {
-    const r = await api('GET', `/api/productions/${productionId}/performances/${performance.value}/roles`);
-    role.replaceChildren(...r.body.map(r => el('option', { value: r.role, text: r.role })));
-    if (Array.from(role.options).some(o => o.value === currentRole)) role.value = currentRole;
+    const request = ++roleRequest;
+    const selectedPerformance = performance.value;
+    rolesReady = false;
+    roleError = '';
+    role.replaceChildren(el('option', { value: '', text: 'Loading roles…' }));
+    updateRoleControls();
+    try {
+      const r = await api('GET', `/api/productions/${productionId}/performances/${selectedPerformance}/roles`, undefined, { quietNetworkError: true });
+      // An older response must not replace the latest performance's options
+      // or a role the coordinator selected after that latest response arrived.
+      if (request !== roleRequest || performance.value !== selectedPerformance) return;
+      if (r.status !== 200 || !Array.isArray(r.body) || r.body.length === 0) {
+        roleError = r.body?.error || 'Roles could not be loaded. Choose a performance again or cancel and retry.';
+        role.replaceChildren(el('option', { value: '', text: 'Roles unavailable' }));
+        banner(roleError);
+        return;
+      }
+      role.replaceChildren(...r.body.map(r => el('option', { value: r.role, text: r.role })));
+      if (Array.from(role.options).some(o => o.value === currentRole)) role.value = currentRole;
+      rolesReady = true;
+    } catch {
+      if (request !== roleRequest || performance.value !== selectedPerformance) return;
+      roleError = 'Roles could not be loaded. Choose a performance again or cancel and retry.';
+      role.replaceChildren(el('option', { value: '', text: 'Roles unavailable' }));
+      banner(roleError);
+    } finally {
+      if (request === roleRequest && performance.value === selectedPerformance) updateRoleControls();
+    }
   };
   await loadRoles(); performance.addEventListener('change', loadRoles);
-  editor('Change assignment', [['Volunteer', volunteer], ['Performance', performance], ['Role', role]], async () => {
+  assignmentDialog = editor('Change assignment', [['Volunteer', volunteer], ['Performance', performance], ['Role', role]], async () => {
+    if (!rolesReady) return { status: 409, body: { error: roleError || 'Wait for this performance’s roles to load before saving.' } };
     // A no-op editor submission must not rewrite a historical assignment or
     // reset its confirmation. Actual changes still go through API validation.
     if (Number(volunteer.value) === assignment.volunteerId && Number(performance.value) === Number(performanceId) && role.value === currentRole) {
@@ -110,7 +147,7 @@ async function editAssignment(assignment, performanceId, currentRole) {
     const r = await api('PUT', `/api/assignments/${assignment.id}`, { volunteerId: Number(volunteer.value), performanceId: Number(performance.value), role: role.value });
     if (r.status === 200) { await renderRosterGrid(performanceId); info('Assignment updated. Changed assignments need confirmation again.'); }
     return r;
-  }, 'Inactive volunteers retain their existing assignment. Select an active replacement before changing their duty.');
+  }, 'Inactive volunteers retain their existing assignment. Select an active replacement before changing their duty.', () => !rolesReady);
 }
 
 /* ---------- tabs ---------- */
