@@ -9,17 +9,32 @@ authentication, and anyone who can reach the server can read and change data.
 ## A3 submission - graded artefact
 
 - **Course:** ISYS3001 Assessment 3, Group 26 (Shiyuan Qu, Yujie Li, Shuhang Zhang).
-- **Graded source:** `main` at `2db8541` (version 1.2.0; the A3 candidate was
-  merged from pull request #5 at `450d171`).
+- **Graded source:** version **1.2.0**, frozen at
+  `b4a300b7b69d2127a7552f22434c3907c2228be9` from `main`. The A3 candidate was
+  merged from pull request #5 at `450d171`. Documentation maintenance is reviewed
+  separately; the assessed application and final packages remain pinned to the
+  frozen commit.
+- **Delivery student:** Shiyuan Qu, **25259191**, according to the latest direct
+  confirmation. Other members' student IDs require their own confirmation.
 - **Member review:** Yujie Li reviewed commit `f3397cc` on 15 October 2026 and
   re-ran five end-to-end scenarios (assignment and confirmation; second-role
   refusal with the original data unchanged; inactive volunteer unchanged Save;
   performance switch with the correct role; personal schedule) - all passed.
   Evidence: [docs/a3/reviews/](docs/a3/reviews/).
-- **Automated tests:** `npm test` - 61 tests, 61 pass, 0 fail (Node.js 24).
-- **Demonstration package:** `25258981_ISYS3001_A3_26_Windows_Demo_RC3.zip`
-  (portable Node 24 runtime, fictional fixtures, launcher and reset tool; kept
-  outside this repository).
+- **Automated tests:** the 18 October 2026 Windows fresh-checkout run passed
+  `npm ci` and all 61 tests at the frozen commit (Node 24.19.0, npm 11.19.1).
+  The [public CI job at the same commit](https://github.com/CyanLimeNing/tinshed-players-roster/actions/runs/39050361590/job/117447525615)
+  separately passed 61/61 on Ubuntu with Node 24.21.0.
+- **Final source package:** `25259191_ISYS3001_A3_26_Source_FINAL.zip` - 65
+  tracked files, byte-identical to the verified Windows checkout; Git content
+  matches with CRLF/LF conversion only. No dependencies, database or real `.env`
+  are included.
+- **Final demonstration package:** `25259191_ISYS3001_A3_26_Windows_Demo_FINAL.zip`
+  contains the same frozen application, Windows x64 Node 24.19.0, locked dependencies,
+  newly generated fictional fixtures, launcher and safe reset tool. The final
+  packages and their verification records are delivered outside this repository.
+  The [Confluence handover](https://scu-it.atlassian.net/wiki/spaces/MSD426GXUST26/pages/1116275297)
+  is the shared evidence entry point.
 - **Technical record set:** test plan, integration review, decision record,
   change and release record, handover and the rc.3 review follow-up under
   [docs/a3/](docs/a3/).
@@ -32,6 +47,7 @@ needed. The legacy `requirements.txt` is not used by this Node application.
 ```bash
 git clone https://github.com/CyanLimeNing/tinshed-players-roster.git
 cd tinshed-players-roster
+git checkout --detach b4a300b7b69d2127a7552f22434c3907c2228be9
 npm ci
 npm test
 npm start
@@ -96,12 +112,19 @@ for role-response ordering, saving, failure and recovery. `npm test` runs
 timestamps, runtime and source hashes in `docs/a3/evidence/<label>/`; choose a
 new label for each retained run.
 
-Browser checks: 12 core interface flows and 4 inactive-history flows passed on
-the rc.2 working tree; they are separate from the 61 automated tests and have
-not been re-run against the final commit. Yujie Li's member review re-executed
-five end-to-end scenarios against the final commit `f3397cc`; the screenshots
-are in `docs/a3/reviews/yujie/`. Older rc.1 browser logs of 12 checks remain
-historical. The runners are `scripts/browser-validation.cjs` and
+The 18 October 2026 AI Windows verification at the frozen 1.2.0 commit passed
+12 core interface checks and 4 inactive-history checks in Edge 155.0.4283.45,
+using 1365x900 and 390x844 core viewports and a desktop inactive-history viewport.
+These rendered checks are separate from the 61 automated tests. The same run
+passed 65 startup/restart assertions and 8 supplemental API scenarios with
+175 assertions. A fresh extraction of the final Windows package passed 8 UI
+checks and 5 lifecycle checks, including persistence, reset backup and baseline
+restoration. These are AI technical records, not real-member or course acceptance.
+
+Earlier rc.1/rc.2 browser records and the 15 October rc.3/f3397cc evidence retain
+their original dates and versions. Yujie Li's member review executed five
+scenarios at `f3397cc`; its screenshots remain in `docs/a3/reviews/yujie/`.
+The repeatable runners are `scripts/browser-validation.cjs` and
 `scripts/inactive-ui-regression.cjs`; they need an optional Playwright
 validation environment and installed Edge, and Playwright is not an application
 runtime dependency or required by `npm test`. Set `A3_PLAYWRIGHT_MODULE` to the
@@ -122,8 +145,9 @@ the lecturer/tutor through the required 10-minute team presentation and
 
 ## Continuous integration
 
-`.github/workflows/test.yml` runs `npm ci` and `npm test` on every push and pull
-request, so a failing test suite blocks a merge into `main`.
+`.github/workflows/test.yml` automatically runs `npm ci` and `npm test` on pushes
+and pull requests. Inspect the run for the commit under review. Required merge
+checks depend on the repository's branch-protection or ruleset configuration.
 
 ## Optional Docker configuration - not execution-tested in this A3 run
 
