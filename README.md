@@ -9,8 +9,8 @@ authentication, and anyone who can reach the server can read and change data.
 ## A3 submission - graded artefact
 
 - **Course:** ISYS3001 Assessment 3, Group 26 (Shiyuan Qu, Yujie Li, Shuhang Zhang).
-- **Graded source:** `main` at merge commit `450d171` (version 1.2.0), merged from
-  pull request #5.
+- **Graded source:** `main` at `2db8541` (version 1.2.0; the A3 candidate was
+  merged from pull request #5 at `450d171`).
 - **Member review:** Yujie Li reviewed commit `f3397cc` on 15 October 2026 and
   re-ran five end-to-end scenarios (assignment and confirmation; second-role
   refusal with the original data unchanged; inactive volunteer unchanged Save;
