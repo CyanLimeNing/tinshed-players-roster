@@ -1,0 +1,89 @@
+{
+  "startedAtUtc": "2026-10-11T00:22:19.157Z",
+  "tool": "Playwright Chromium",
+  "routing": "Browser plugin skill not available; frontend-testing-debugging fallback",
+  "node": "v24.19.0",
+  "viewports": [
+    "1365x900",
+    "390x844"
+  ],
+  "checks": [
+    {
+      "id": "UI01",
+      "description": "App identity and meaningful first screen",
+      "status": "PASS"
+    },
+    {
+      "id": "UI02",
+      "description": "Create and rename production",
+      "status": "PASS"
+    },
+    {
+      "id": "UI03",
+      "description": "Create performances, edit time and revise crew count",
+      "status": "PASS"
+    },
+    {
+      "id": "UI04",
+      "description": "Create volunteers and edit contact without losing emergency contact",
+      "status": "PASS"
+    },
+    {
+      "id": "UI05",
+      "description": "Assign volunteer and confirm from roster",
+      "status": "PASS"
+    },
+    {
+      "id": "UI06",
+      "description": "Duplicate role refusal remains visible; assignment preserved",
+      "status": "PASS"
+    },
+    {
+      "id": "UI07",
+      "description": "Replacement resets confirmation and move changes performance",
+      "status": "PASS"
+    },
+    {
+      "id": "UI08",
+      "description": "Volunteer schedule reflects moved assignment",
+      "status": "PASS"
+    },
+    {
+      "id": "UI09",
+      "description": "Whole production overview and responsive roster",
+      "status": "PASS"
+    },
+    {
+      "id": "UI10",
+      "description": "Remove assignment opens its role",
+      "status": "PASS"
+    },
+    {
+      "id": "UI11",
+      "description": "Deactivate volunteer and still find their schedule",
+      "status": "PASS"
+    },
+    {
+      "id": "UI12",
+      "description": "No uncaught app errors or unexpected HTTP failures",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "console": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 409 (Conflict)"
+    }
+  ],
+  "responses": [
+    {
+      "status": 409,
+      "url": "http://127.0.0.1:3199/api/performances/1/assignments"
+    }
+  ],
+  "status": "PASS",
+  "finishedAtUtc": "2026-10-11T00:22:22.278Z",
+  "browser": "155.0.4283.45",
+  "serverLog": "Tinshed Crew Roster listening on http://localhost:3199; development; in-memory demo database."
+}

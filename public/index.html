@@ -19,7 +19,7 @@
   </header>
 
   <main>
-    <div id="banner" class="banner hidden"></div>
+    <div id="banner" class="banner hidden" role="status" aria-live="polite"></div>
 
     <!-- Roster view: pick a production and performance, see the holes -->
     <section id="view-roster" class="view active">
@@ -65,6 +65,7 @@
 
     <!-- My Schedule view: what one volunteer is rostered on -->
     <section id="view-schedule" class="view">
+      <p>Choose a volunteer to view their schedule. This demonstration has no sign-in or private accounts.</p>
       <div class="toolbar">
         <label>Volunteer
           <select id="schedule-volunteer"></select>

@@ -40,6 +40,7 @@ async function startTestServer(t) {
   });
 
   return {
+    baseUrl,
     db,
     api,
     get: (path) => api('GET', path),

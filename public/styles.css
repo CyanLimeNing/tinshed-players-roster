@@ -149,3 +149,35 @@ footer {
   padding: 4px 0; border-bottom: 1px dashed var(--line);
 }
 .unavailability-list li span { flex: 1; }
+
+button:disabled { opacity: .55; cursor: wait; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.assignment { display: block; margin-bottom: 10px; }
+.roster-row { align-items: flex-start; border-bottom: 1px solid var(--line); padding: 12px 0; }
+.roster-role { width: 150px; flex-shrink: 0; }
+.roster-people { min-width: 0; overflow-wrap: anywhere; }
+.roster-assign { flex-wrap: wrap; max-width: 275px; }
+.roster-summary { color: #4c5653; line-height: 1.5; }
+dialog { border: 1px solid var(--line); border-radius: 8px; width: min(650px, 94vw); padding: 24px; color: var(--ink); }
+dialog::backdrop { background: #26302e88; }
+dialog h2 { margin-top: 0; }
+dialog label { margin-bottom: 5px; font-size: 15px; }
+.editor-field { margin-bottom: 14px; }
+dialog input, dialog select { width: 100%; min-width: 0; }
+.error-text { color: var(--bad); font-weight: bold; }
+.crew-editor-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; margin-bottom: 8px; }
+.perf-line { flex-wrap: wrap; }
+#volunteer-list, #schedule-list { overflow-x: auto; }
+td button { margin: 2px; }
+@media (max-width: 700px) {
+  header, main { padding-left: 14px; padding-right: 14px; }
+  header .subtitle { display: block; margin: 5px 0; }
+  nav { flex-wrap: wrap; }
+  .tab { padding: 10px 12px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .roster-row { flex-direction: column; gap: 8px; }
+  .roster-role { width: auto; }
+  .roster-assign { margin-left: 0; max-width: 100%; }
+  .toolbar label, .toolbar select { width: 100%; }
+  .crew-editor-row { grid-template-columns: 2fr 1fr; }
+}

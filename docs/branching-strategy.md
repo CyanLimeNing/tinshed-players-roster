@@ -1,64 +1,75 @@
-# Branching strategy
+# Branching and review strategy
 
-This project follows a **GitHub Flow with a long-lived `develop` line**, which
-is the middle ground chosen after comparing the three mainstream strategies.
-The decision is recorded here so the marker — and the next team — can see not
-just *what* was done but *why*.
+This file separates inherited A2 notes from the A3 integration proposal. The
+formal A3 Brief requires a three-member team. Earlier wording about a
+four-person team and a mandatory long-lived `develop` line is not evidence of
+the current team's membership or actual branch workflow.
 
-## Why this strategy?
+## A2 history
 
-| Strategy | Strengths | Weaknesses for this project |
-|----------|-----------|-----------------------------|
-| **Git Flow** | Separate release/hotfix branches, formal releases | Heavyweight ceremony for a single-sprint, four-person team; the `release` branch adds process without adding safety at this scale. |
-| **Trunk-based** | Fastest feedback, smallest mental overhead | Requires a mature CI/CD pipeline and high-frequency commits to be safe; the team has no CI runner on this project, so direct-to-main changes could break the only deployable branch. |
-| **GitHub Flow + `develop`** | Feature branches reviewed before merging; `main` stays releasable | Slightly more ceremony than trunk-based. |
+The inherited documentation described GitHub Flow with `feature/*` branches
+merging into `develop`, then `develop` into `main`. The changelog's 1.0.x/1.1.x
+entries are historical A2 records; they do not establish new A3 releases or
+prove that a `develop` branch is currently used in the team repository.
 
-**Choice: GitHub Flow with a `develop` integration branch.** `main` is the
-releasable line and is updated only from `develop` at release time; day-to-day
-work happens on short-lived `feature/*` branches that are reviewed against
-their acceptance criteria before they merge into `develop`. This delivers the
-review discipline the Definition of Done requires (every story reviewed before
-it merges) without Git Flow's release-branch overhead, and it keeps `main`
-shippable even though no CI runner protects it.
+The A3 candidate starts from team `main`
+`f2999cfdd1d213ce8548ac142c35944decf85d9b`. The 29 tracked baseline blobs were
+verified when materialising the local source snapshot. Its tree matches
+`b29f71cb5d70968f5972ba26c0891f944b381c45`. A materialised snapshot is not a
+successful network clone or a new remote baseline commit.
 
-## Branches
+## Proposed A3 workflow
 
-- `main` — always releasable. Updated only from `develop` at release time
-  (no direct commits).
-- `develop` — integration branch. Feature branches merge here after review.
-- `feature/<slug>` — one branch per user story or coherent task, e.g.
-  `feature/volunteer-crud`, `feature/one-role-rule`.
+Use a short-lived story/topic branch from verified team `main`, then a real
+PR back to `main`. This fits a small integration change and preserves the case
+study's requirement for another team member to review before merge. This is a
+proposal and local workflow until the corresponding remote objects exist.
 
-## Naming convention
+| Branch or object | Intended use | Actual evidence needed |
+|---|---|---|
+| `main` | Team baseline and reviewed integration destination | Real remote SHA; reviewed merge before calling rc.2 a release |
+| `codex/roster-validation` | Current local candidate branch for validation and roster editing | Successful remote push, PR URL and final head |
+| A genuine Jira/story branch for later work | One coherent story or task per branch | Real story key/topic, commits, review and tests |
+| Release tag | Identify an approved release commit | Actual tag after the team agrees and completes release gates |
 
-`feature/<short-slug>` with a lowercase, hyphenated slug naming the story or
-capability the branch delivers.
+Branches name the story or capability and use lowercase hyphenated slugs.
+Do not include student identifiers. A real Jira key can be included once it is
+known; local IDs such as R03 or CR09 are not invented Jira keys.
 
-## Merge workflow
+## Merge procedure
 
-1. Create the feature branch from the tip of `develop`.
-2. Commit small, conventional commits (`feat:`, `fix:`, `test:`, `docs:`,
-   `chore:`, `refactor:`) as the story is built.
-3. Review `feature/<slug>` against its acceptance criteria; address any
-   findings.
-4. Merge into `develop` (merge commit, no squash, so the feature history
-   survives).
-5. Delete the merged feature branch.
-6. At sprint close, merge `develop` → `main` after review; tag the merge
-   commit (`v1.0.0`).
+1. Confirm the actual team `main` and prepare the story/topic branch from that
+   baseline. Inspect the diff before bringing in the candidate package.
+2. Commit implementation, necessary regressions and accurate technical
+   documentation. Record the actual final head.
+3. Push with an authorised contributor account and create a real PR to `main`.
+   Check `docs/a3/INTEGRATION_REVIEW.md` for current transport and publication
+   results. A connector 403 is specific to that connector operation; it does
+   not by itself prove all Git transports are unavailable.
+4. Have another real team member review against the real Jira AC. Record review
+   comments and their disposition before merge. Independent AI technical
+   review is additional evidence and cannot satisfy the member-review condition.
+5. Run the 59-test suite on the final selected commit, exercise the affected UI
+   paths and record README-only clean-checkout startup. Maintain truthful Jira
+   state and publish decisions and the six-section handover in Confluence.
+6. Merge only after the fixed case DoD is satisfied. Use the team's actual merge
+   method, record the resulting SHA and repeat checks affected by integration.
+   Tag only the reviewed release that the team actually approved.
 
-## Commit message convention
+No branch protection, required approvals, CI enforcement, merge method or
+remote tag is claimed to exist merely because it appears in this procedure.
+Verify the repository's real capabilities and settings.
 
-Conventional Commits, imperative mood, one change per commit:
+## Commit conventions
 
-- `feat:` new capability
-- `fix:` bug fix
-- `test:` tests only
-- `docs:` documentation
-- `chore:` tooling, config, deployment files
-- `refactor:` behaviour-preserving restructuring
+Use conventional, imperative messages where practical:
 
-## Tags and releases
+- `feat:` introduces a capability.
+- `fix:` corrects behaviour.
+- `test:` adds meaningful verification.
+- `docs:` updates instructions or evidence.
+- `chore:` changes tooling/configuration.
+- `refactor:` restructures without changing behaviour.
 
-Merge commits on `main` are tagged with a semantic version (`v1.0.0`) and the
-release is recorded in `CHANGELOG.md` (Keep a Changelog format).
+Keep final-commit logs, PR review, Jira AC and the changelog consistent. Candidate
+version `1.2.0-rc.2` is not a claim that a team release tag or merge exists.

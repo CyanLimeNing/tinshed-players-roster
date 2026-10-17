@@ -1,0 +1,24 @@
+{
+  "startedAtUtc": "2026-10-11T00:25:47.115Z",
+  "node": "v24.19.0",
+  "method": "Fresh source-directory copy without node_modules, .env or database; source obtained through GitHub connector, not git clone.",
+  "checks": [
+    {
+      "command": "npm ci --no-fund --no-audit",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0
+    },
+    {
+      "command": "npm start equivalent (node src/server.js), PORT=3201 to avoid collision",
+      "httpStatus": 200,
+      "databaseCreated": true,
+      "noEnvFile": true
+    }
+  ],
+  "status": "PASS",
+  "finishedAtUtc": "2026-10-11T00:25:55.636Z",
+  "serverLog": "Local server started on port 3201. Fresh data/tinshed.db created."
+}

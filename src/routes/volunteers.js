@@ -10,6 +10,7 @@
  */
 
 const express = require('express');
+const { cleanText, isIsoDate } = require('../validation');
 
 function volunteersRouter(db) {
   const router = express.Router();
@@ -29,7 +30,7 @@ function volunteersRouter(db) {
     if (!name || !String(name).trim()) {
       return res.status(400).json({ error: 'A name is required.' });
     }
-    if (!phone && !email) {
+    if (!cleanText(phone) && !cleanText(email)) {
       return res
         .status(400)
         .json({ error: 'A way to contact the volunteer is required (phone or email).' });
@@ -57,12 +58,19 @@ function volunteersRouter(db) {
     const existing = db.prepare('SELECT * FROM volunteers WHERE id = ?').get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Volunteer not found.' });
     const { name, phone, email, emergency_contact: emergencyContact } = req.body || {};
+    const nextName = name === undefined ? existing.name : cleanText(name);
+    const nextPhone = phone === undefined ? existing.phone : cleanText(phone);
+    const nextEmail = email === undefined ? existing.email : cleanText(email);
+    if (!nextName) return res.status(400).json({ error: 'A name is required.' });
+    if (!nextPhone && !nextEmail) {
+      return res.status(400).json({ error: 'A way to contact the volunteer is required (phone or email).' });
+    }
     db.prepare(
       `UPDATE volunteers SET name = ?, phone = ?, email = ?, emergency_contact = ? WHERE id = ?`
     ).run(
-      name !== undefined ? String(name).trim() : existing.name,
-      phone !== undefined ? String(phone).trim() : existing.phone,
-      email !== undefined ? (email ? String(email).trim() : null) : existing.email,
+      nextName,
+      nextPhone,
+      nextEmail || null,
       emergencyContact !== undefined
         ? (emergencyContact ? String(emergencyContact).trim() : null)
         : existing.emergency_contact,
@@ -130,10 +138,6 @@ function volunteersRouter(db) {
   });
 
   return router;
-}
-
-function isIsoDate(value) {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 function toUnavailabilityApi(row) {

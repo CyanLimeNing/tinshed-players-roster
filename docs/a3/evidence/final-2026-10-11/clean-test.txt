@@ -1,0 +1,66 @@
+
+> tinshed-crew-roster@1.2.0-rc.1 test
+> node --test test/*.test.js
+
+✔ a volunteer is assigned to a role for a performance (323.8912ms)
+✔ an assignment appears on the performance roster (92.3402ms)
+✔ a role outside the crew call is refused (35.3125ms)
+✔ THE ONE-ROLE RULE: a second role in the same performance is refused with a reason (74.8915ms)
+✔ THE ONE-ROLE RULE: moving an assignment onto a performance the volunteer already works is refused (75.466ms)
+✔ replacing the volunteer on an assignment keeps the position filled by the new person (63.8352ms)
+✔ removing an assignment opens the position rather than deleting it (78.0721ms)
+✔ changing one assignment does not affect any other assignment (96.572ms)
+✔ an assignment can be confirmed (59.7987ms)
+✔ PERSIST01 saved volunteers, performances and assignments survive reopening the database (535.1114ms)
+✔ a production is created with a title (252.3598ms)
+✔ a production without a title is refused (46.8223ms)
+✔ performances are listed in date and time order (114.7729ms)
+✔ changing one performance leaves the others unaffected (67.4089ms)
+✔ removing a performance leaves the production and its other performances intact (64.1285ms)
+✔ an evening call has a bar; a matinee call does not (46.4244ms)
+✔ the crew call of one performance can be revised without touching another (59.0748ms)
+✔ the roster shows filled and open positions for every role in the call (365.5458ms)
+✔ the production roster covers every performance in date order (74.3437ms)
+✔ a volunteer sees their own assignments with production, date, time and role (60.9906ms)
+✔ a volunteer with no assignments gets an empty list rather than an error (16.2503ms)
+✔ a volunteer can record a date range they cannot be rostered (314.9546ms)
+✔ a range with startsOn after endsOn is refused (51.5632ms)
+✔ a performance inside an unavailable range refuses the assignment with a reason (98.8503ms)
+✔ the first and last day of the range are also refused (inclusive boundaries) (61.4275ms)
+✔ a performance outside the range is accepted (34.3913ms)
+✔ moving an assignment to an unavailable date is refused (105.3729ms)
+✔ removing the recorded range allows the volunteer to be rostered again (60.7797ms)
+✔ VAL01 blank contact information is rejected on create (274.7319ms)
+✔ VAL02 an update cannot erase the volunteer name (75.0158ms)
+✔ VAL03 an update cannot erase the last contact method (44.0401ms)
+✔ VAL04 email only is a valid contact method (35.9435ms)
+✔ VAL05 impossible performance dates are rejected (65.6998ms)
+✔ VAL06 impossible performance times are rejected (48.5152ms)
+✔ VAL07 invalid dates on update preserve the old performance (23.891ms)
+✔ VAL08 impossible unavailable dates are rejected (17.9345ms)
+✔ VAL09 real leap day is accepted and non leap day is rejected (30.4918ms)
+✔ VAL10 changing assignment to an inactive volunteer is rejected (109.7201ms)
+✔ VAL11 changing assignment to a role outside the call is rejected (62.6334ms)
+✔ VAL12 replacing a confirmed assignment requires a new confirmation (63.2582ms)
+✔ VAL13 a no change assignment update preserves confirmation (47.2316ms)
+✔ VAL14 nested performance operations cannot affect another production (109.221ms)
+✔ VAL15 duplicate crew roles are rejected without losing the old crew call (48.5404ms)
+✔ VAL16 a crew call edit cannot silently hide existing assignments (77.4714ms)
+✔ VAL17 moving a performance to an unavailable date is rejected (59.3786ms)
+✔ VAL18 malformed JSON returns a client error (6.7842ms)
+✔ VAL19 rescheduling clears confirmation and preserves assignment identity (88.4165ms)
+✔ VAL20 unknown crew template is rejected without creating a performance (15.2715ms)
+✔ a volunteer can be added with name and contact details (253.9381ms)
+✔ a volunteer with no contact method is refused (33.8568ms)
+✔ a volunteer can be found again and listed (90.6438ms)
+✔ contact details can be updated (32.3037ms)
+✔ deactivating a volunteer keeps their historical assignments (103.4207ms)
+✔ an inactive volunteer cannot be rostered on a new assignment (58.305ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3846.0238
