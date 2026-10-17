@@ -1,20 +1,36 @@
 # The Tinshed Players - Crew Roster
 
-ISYS3001 teaching prototype. Candidate **1.2.0-rc.3** adds editable roster
-controls and validation to the team A2 baseline, and fixes unchanged Save
-silently replacing an inactive volunteer's historical assignment. Use fictional demonstration data: there is
-no authentication, and anyone who can reach the server can read/change data.
-The rc.3 assignment editor ignores obsolete role responses after switching
-performances and blocks saving until the current crew roles are ready.
+ISYS3001 teaching prototype. Version **1.2.0** is the merged A3 candidate: it adds
+editable roster controls and validation to the team's A2 baseline, and fixes the
+defect in which an unchanged Save silently replaced an inactive volunteer's
+historical assignment. Use fictional demonstration data: there is no
+authentication, and anyone who can reach the server can read and change data.
 
-## Run the current candidate from the supplied source ZIP
+## A3 submission - graded artefact
 
-Install Node.js 24.x and npm. Tested on Node 24.19.0, Windows x64. No Python,
-external database or compilation is needed. The legacy `requirements.txt` is not
-used by this Node application.
+- **Course:** ISYS3001 Assessment 3, Group 26 (Shiyuan Qu, Yujie Li, Shuhang Zhang).
+- **Graded source:** `main` at merge commit `450d171` (version 1.2.0), merged from
+  pull request #5.
+- **Member review:** Yujie Li reviewed commit `f3397cc` on 15 October 2026 and
+  re-ran five end-to-end scenarios (assignment and confirmation; second-role
+  refusal with the original data unchanged; inactive volunteer unchanged Save;
+  performance switch with the correct role; personal schedule) - all passed.
+  Evidence: [docs/a3/reviews/](docs/a3/reviews/).
+- **Automated tests:** `npm test` - 61 tests, 61 pass, 0 fail (Node.js 24).
+- **Demonstration package:** `25258981_ISYS3001_A3_26_Windows_Demo_RC3.zip`
+  (portable Node 24 runtime, fictional fixtures, launcher and reset tool; kept
+  outside this repository).
+- **Technical record set:** test plan, integration review, decision record,
+  change and release record, handover and the rc.3 review follow-up under
+  [docs/a3/](docs/a3/).
+
+## Run from a clean checkout
+
+Install Node.js 24.x and npm. No Python, external database or compilation is
+needed. The legacy `requirements.txt` is not used by this Node application.
 
 ```bash
-# Extract the supplied current source ZIP first, then open its source directory.
+git clone https://github.com/CyanLimeNing/tinshed-players-roster.git
 cd tinshed-players-roster
 npm ci
 npm test
@@ -23,31 +39,7 @@ npm start
 
 Open http://127.0.0.1:3000. Start with an empty database: add a production and
 performances, then volunteers, then use Roster to assign them. Stop with Ctrl+C.
-Records persist in `data/tinshed.db`. Defaults work without `.env`. The candidate
-needs a real team member's PR review. See
-[integration review](docs/a3/INTEGRATION_REVIEW.md) for current publication,
-branch, PR and final-commit evidence. A connector 403 concerns that operation;
-it does not establish that every Git transport is unavailable.
-
-## Run the candidate from GitHub
-
-The team repository is https://github.com/CyanLimeNing/tinshed-players-roster.
-The verified starting `main` is the A2 baseline
-`f2999cfdd1d213ce8548ac142c35944decf85d9b`; cloning it alone does not retrieve
-the current candidate. The topic branch is published in draft PR #5; use:
-
-```bash
-git clone https://github.com/CyanLimeNing/tinshed-players-roster.git
-cd tinshed-players-roster
-git switch codex/roster-validation
-npm ci
-npm test
-npm start
-```
-
-After a reviewed merge, use the real merge commit or release tag recorded in
-the integration review. PR #5 is awaiting a real team member's review; no merge
-or release is implied by the published topic branch.
+Records persist in `data/tinshed.db`. Defaults work without `.env`.
 
 ## Interface
 
@@ -96,46 +88,42 @@ npm test
 npm run test:evidence -- local-review
 ```
 
-The current suite has 59 behavioural API/persistence tests: 33 inherited,
-20 validation, one original file-persistence test and five independent AI
-technical-review regressions (REV01-05), plus two client-state regressions
-(UIROLE01-02) for role-response ordering, saving, failure and recovery.
-The earlier rc.2 prepublication working-tree run
-passed 59/59; final-commit evidence is recorded separately in the integration
-review and retained run metadata. Older rc.1 logs of 54 tests remain historical.
-`helpers.js` is not a test. Evidence records TAP, timestamps, runtime and source
-hashes in `docs/a3/evidence/<label>/`; choose a new label for each retained run.
+The suite contains 61 behavioural API, validation, persistence and client-state
+tests: 33 inherited, 20 validation, one original file-persistence test, five
+review regressions (REV01-05) and two client-state regressions (UIROLE01-02)
+for role-response ordering, saving, failure and recovery. `npm test` runs
+`node --test test/*.test.js`; `helpers.js` is not a test. Evidence records TAP,
+timestamps, runtime and source hashes in `docs/a3/evidence/<label>/`; choose a
+new label for each retained run.
 
-Current browser checks passed 12 core flows plus four inactive-history flows.
-These 16 AI-assisted technical checks are separate from the 59 API/persistence
-tests. Older rc.1 browser logs of 12 checks remain historical. The technical
-delivery bundle retains current browser and prepublication runs in
-`outputs/evidence/`; the source ZIP is separate from that evidence bundle.
-
-The repeatable browser runners are included at
-`scripts/browser-validation.cjs` and `scripts/inactive-ui-regression.cjs`.
-They require an optional Playwright validation environment and installed Edge;
-Playwright is not an application runtime dependency or required by `npm test`.
-Set `A3_PLAYWRIGHT_MODULE` to the absolute module path of your installed
-`node_modules/playwright`, and `A3_UI_EVIDENCE_DIR` to an absolute evidence
-directory outside the source checkout. Then run:
-
-```bash
-node scripts/browser-validation.cjs
-node scripts/inactive-ui-regression.cjs
-```
-
-The runners retain their respective core-ui and inactive-ui results and
-screenshots under the configured evidence directory. Use fictional fixtures;
-record the actual browser, viewport, version and source hashes for each run.
+Browser checks: 12 core interface flows and 4 inactive-history flows passed on
+the rc.2 working tree; they are separate from the 61 automated tests and have
+not been re-run against the final commit. Yujie Li's member review re-executed
+five end-to-end scenarios against the final commit `f3397cc`; the screenshots
+are in `docs/a3/reviews/yujie/`. Older rc.1 browser logs of 12 checks remain
+historical. The runners are `scripts/browser-validation.cjs` and
+`scripts/inactive-ui-regression.cjs`; they need an optional Playwright
+validation environment and installed Edge, and Playwright is not an application
+runtime dependency or required by `npm test`. Set `A3_PLAYWRIGHT_MODULE` to the
+absolute module path of your installed `node_modules/playwright`, and
+`A3_UI_EVIDENCE_DIR` to an absolute evidence directory outside the source
+checkout. The runners retain their respective core-ui and inactive-ui results
+and screenshots under the configured evidence directory. Use fictional
+fixtures; record the actual browser, viewport, version and source hashes for
+each run.
 
 See [handover](docs/a3/TECHNICAL_HANDOVER.md), [test plan](docs/a3/TEST_PLAN.md),
 [change/release record](docs/a3/CHANGE_RELEASE.md),
 [integration review](docs/a3/INTEGRATION_REVIEW.md) and
-[decisions](docs/a3/DECISIONS.md). Automated results do not establish a real
-team member's PR review, Jira completion or Confluence publication. Formal
-course acceptance is by the lecturer/tutor through the required 10-minute
-team presentation and 5-minute Q&A; these logs do not imply that acceptance.
+[decisions](docs/a3/DECISIONS.md). Automated results do not establish real
+user-acceptance testing or formal acceptance. Formal course acceptance is by
+the lecturer/tutor through the required 10-minute team presentation and
+5-minute Q&A; these logs do not imply that acceptance.
+
+## Continuous integration
+
+`.github/workflows/test.yml` runs `npm ci` and `npm test` on every push and pull
+request, so a failing test suite blocks a merge into `main`.
 
 ## Optional Docker configuration - not execution-tested in this A3 run
 
@@ -157,6 +145,6 @@ Physical phones, Firefox/Safari, full accessibility, load/concurrency,
 production security, Docker execution and human backup/restore were not verified.
 
 `src/` server, `public/` interface, `test/` tests, `docs/` technical evidence.
-A3 changes/documents were prepared with AI assistance and require student
-verification and another team member's review. They do not establish historical
-sprint activity or human acceptance. MIT; see LICENSE. Case names are fictional.
+A3 changes and documents were prepared with AI assistance and were verified by
+the team where stated; they do not establish historical sprint activity or
+human acceptance. MIT; see LICENSE. Case names are fictional.

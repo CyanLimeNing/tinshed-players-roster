@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.2.0] — 2026-10-18 — merged A3 release
+
+### Changed
+
+- Merged the A3 review candidate (`codex/roster-validation`, commit `f3397cc`)
+  into `main` through pull request #5, after a member review by Yujie Li
+  recorded in [docs/a3/reviews/](docs/a3/reviews/). `main` is now the graded
+  artefact; the topic branch is no longer required to review the work.
+- Added a continuous-integration workflow (`.github/workflows/test.yml`) that
+  runs `npm ci` and `npm test` on every push and pull request.
+- README now records the graded commit, the member review and the test result.
+
+### Verified
+
+- `npm test`: 61 tests, 61 pass, 0 fail (Node.js 24).
+- Five end-to-end scenarios re-run against `f3397cc` by Yujie Li on
+  2026-10-15: assignment and confirmation; second-role refusal with the
+  original data unchanged; inactive volunteer unchanged Save; performance
+  switch with the correct role; personal schedule - all passed.
+
 ## [1.2.0-rc.3] — 2026-10-15 — review candidate
 
 ### Fixed
